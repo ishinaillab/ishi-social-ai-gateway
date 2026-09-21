@@ -320,7 +320,7 @@ final class Gateway {
         }
 
         $context = self::trusted_context( $payload, true );
-        $reply = self::query_ai_engine( $payload, $context );
+        $reply = self::query_ai_engine( $payload, $context, true );
 
         if ( is_wp_error( $reply ) ) {
             self::fail_request( $payload );
@@ -359,7 +359,7 @@ final class Gateway {
             return;
         }
 
-        $reply = self::query_ai_engine( $payload, self::trusted_context( $payload, false ) );
+        $reply = self::query_ai_engine( $payload, self::trusted_context( $payload, false ), false );
         if ( is_wp_error( $reply ) ) {
             self::log_error( $reply->get_error_code(), $payload['conversation_key'] );
             return;
@@ -369,7 +369,7 @@ final class Gateway {
         self::send_manychat_reply( $payload, $reply );
     }
 
-    private static function query_ai_engine( array $payload, string $context ): string|WP_Error {
+    private static function query_ai_engine( array $payload, string $context, bool $chatfuel ): string|WP_Error {
         global $mwai;
 
         if ( ! is_object( $mwai ) || ! method_exists( $mwai, 'simpleChatbotQuery' ) ) {
@@ -382,7 +382,7 @@ final class Gateway {
         }
 
         $bot_id = self::settings()['bot_id'] ?: 'default';
-        $chat_id = self::chat_id( $payload['conversation_key'] );
+        $chat_id = self::chat_id( $payload['conversation_key'], $chatfuel );
 
         $instruction_filter = static function ( $instructions, $query ) use ( $context ) {
             return rtrim( (string) $instructions ) . "\n\n" . $context;
@@ -477,6 +477,12 @@ final class Gateway {
         if ( 0 === strpos( $route, '/' . self::REST_NS . '/' ) && $response instanceof WP_REST_Response ) {
             $response->header( 'Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0' );
             $response->header( 'Pragma', 'no-cache' );
+
+            if ( 429 === $response->get_status() ) {
+                $response->header( 'Retry-After', '60' );
+            } elseif ( 409 === $response->get_status() ) {
+                $response->header( 'Retry-After', '2' );
+            }
         }
         return $response;
     }
@@ -820,8 +826,21 @@ final class Gateway {
         return self::opaque_hash( 'conversation:' . $conversation_key );
     }
 
-    private static function chat_id( string $conversation_key ): string {
-        return 'ishi_social_' . substr( self::opaque_hash( 'chat:' . $conversation_key ), 0, 40 );
+    private static function chat_id( string $conversation_key, bool $chatfuel ): string {
+        /*
+         * Preserve v1.0 ManyChat discussion continuity exactly. Chatfuel is a
+         * new transport in v1.1, so it uses the plugin-owned secret and a
+         * domain-separated input from day one.
+         */
+        if ( ! $chatfuel ) {
+            return 'ishi_social_' . substr(
+                hash_hmac( 'sha256', $conversation_key, self::legacy_hash_secret() ),
+                0,
+                40
+            );
+        }
+
+        return 'ishi_social_' . substr( self::opaque_hash( 'chatfuel-chat:' . $conversation_key ), 0, 40 );
     }
 
     private static function opaque_hash( string $value ): string {
