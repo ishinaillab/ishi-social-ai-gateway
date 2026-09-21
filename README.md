@@ -53,7 +53,7 @@ The ManyChat path remains asynchronous because its external-request timeout is s
 - Added durable, concurrency-safe idempotency backed by a WordPress database table.
 - Added persistent handoff state storage.
 - Replaced transient-only rate counters for the AI path with atomic database counters.
-- Added a stable plugin-owned HMAC secret for opaque conversation/chat identifiers so WordPress salt rotation does not unexpectedly break conversation continuity.
+- Added a stable plugin-owned HMAC secret for new Chatfuel conversation identifiers and hashed storage keys. Legacy ManyChat chat IDs keep the v1.0 derivation so existing AI Engine discussion continuity is preserved.
 - Added strict JSON and opaque-identifier validation.
 - Added `Cache-Control: no-store` / `Pragma: no-cache` on gateway responses.
 - Added structured, non-sensitive AI failures.
@@ -150,7 +150,7 @@ Only HMAC hashes of social identifiers are stored in the idempotency/state/rate 
 
 ## Conversation continuity
 
-The plugin derives an opaque stable AI Engine `chatId` from the social channel + contact ID using HMAC-SHA256 and a plugin-owned server secret.
+For Chatfuel, the plugin derives an opaque stable AI Engine `chatId` from the social channel + contact ID using HMAC-SHA256 and a plugin-owned server secret. Legacy ManyChat keeps its v1.0 chat-ID derivation to avoid breaking existing AI Engine discussions during the upgrade.
 
 The raw Chatfuel contact ID is not inserted into AI instructions.
 
