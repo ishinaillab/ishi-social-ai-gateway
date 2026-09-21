@@ -591,7 +591,7 @@ final class Gateway {
         return in_array( $channel, [ 'instagram', 'messenger', 'whatsapp', 'telegram' ], true ) ? $channel : '';
     }
 
-    private static function claim_request( array $payload ): array|true|WP_Error {
+    private static function claim_request( array $payload ): array|bool|WP_Error {
         global $wpdb;
 
         $table = self::requests_table();
