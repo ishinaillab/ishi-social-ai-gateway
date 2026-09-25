@@ -292,7 +292,7 @@ final class Gateway {
             return $payload;
         }
 
-        if ( 'instagram' !== $payload['channel'] ) {
+        if ( ! in_array( $payload['channel'], [ 'instagram', 'messenger' ], true ) ) {
             return new WP_Error( 'ishi_gateway_invalid_channel', 'Unsupported channel.', [ 'status' => 400 ] );
         }
 
