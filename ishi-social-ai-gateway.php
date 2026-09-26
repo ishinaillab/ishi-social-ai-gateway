@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ishi Social AI Gateway
  * Description: Secure social-channel gateway for Ishi Nail Lab. Preserves the legacy asynchronous ManyChat bridge and adds a synchronous Chatfuel transport endpoint for the existing AI Engine chatbot.
- * Version: 1.1.0
+ * Version: 1.1.1
  * Author: Ishi Nail Lab
  * Requires at least: 6.9
  * Requires PHP: 8.1
@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 final class Gateway {
-    private const VERSION = '1.1.0';
+    private const VERSION = '1.1.1';
     private const SCHEMA_VERSION = '1.1.0';
 
     private const OPTION = 'ishi_social_ai_gateway_settings';
