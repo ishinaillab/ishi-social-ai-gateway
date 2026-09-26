@@ -41,5 +41,5 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          grep -q '^ \* Version: 1\.1\.0$' ishi-social-ai-gateway.php
+          grep -q '^ \* Version: 1\.1\.1$' ishi-social-ai-gateway.php
           grep -q "private const VERSION = '1.1.1';" ishi-social-ai-gateway.php
